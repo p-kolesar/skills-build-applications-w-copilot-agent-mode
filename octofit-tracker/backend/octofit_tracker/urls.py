@@ -16,7 +16,34 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from . import views
+from rest_framework import routers
+from rest_framework.schemas import get_schema_view
+from rest_framework.documentation import include_docs_urls
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
+router = routers.DefaultRouter()
+router.register(r'users', views.UserViewSet)
+router.register(r'teams', views.TeamViewSet)
+router.register(r'activities', views.ActivityViewSet)
+router.register(r'leaderboard', views.LeaderboardViewSet)
+router.register(r'workouts', views.WorkoutViewSet)
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'users': request.build_absolute_uri('api/users/'),
+        'teams': request.build_absolute_uri('api/teams/'),
+        'activities': request.build_absolute_uri('api/activities/'),
+        'leaderboard': request.build_absolute_uri('api/leaderboard/'),
+        'workouts': request.build_absolute_uri('api/workouts/'),
+    })
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('octofit_tracker.urls')),
+    path('', api_root, name='api-root'),
+    path('api/', include(router.urls)),
+    path('docs/', include_docs_urls(title='OctoFit Tracker API')),
+    path('schema/', get_schema_view(title='OctoFit Tracker API', description='API for all endpoints', version='1.0.0'), name='openapi-schema'),
 ]
